@@ -12,8 +12,9 @@ import esri = __esri;
 export class EsriMapComponent implements OnInit {
 
   // Private vars with default values
-  private _zoom = 10;
-  private _center = [0.1278, 51.5074];
+  private _zoom = 7;
+  private _center = [-27, 153];
+  private _opacity = 0.6;
   private maps = {
     topo: null,
     streets: null,
@@ -23,8 +24,13 @@ export class EsriMapComponent implements OnInit {
   private mapView: esri.MapView;
   private locationLoading = false;
   private _currentMap = 'streets';
-  private Point;
+  private featureLayer
   private trackWidget;
+  //pointers to Esri classes
+  private Point;
+  private Circle;
+  private Graphic;
+
 
   @Input()
     set zoom(zoom: number) {
@@ -45,6 +51,7 @@ export class EsriMapComponent implements OnInit {
     }
 
   @Input() _mapSelected: Subject<string>;
+  @Input() _opacityChanged: Subject<number>;
 
   @Output() mapLoaded = new EventEmitter<boolean>();
 
@@ -57,6 +64,10 @@ export class EsriMapComponent implements OnInit {
     console.log('oninit');
     this._mapSelected.subscribe(mapType => {
       this.mapView.map = this.maps[mapType];
+      this.mapView.map.add(this.featureLayer);
+    })
+    this._opacityChanged.subscribe(opacity => {
+      this.featureLayer.opacity = opacity;
     })
 
 
@@ -65,17 +76,32 @@ export class EsriMapComponent implements OnInit {
       'esri/views/MapView',
       'esri/layers/FeatureLayer',
       'esri/geometry/Point',
-      'esri/symbols/SimpleMarkerSymbol',
-      'esri/symbols/SimpleLineSymbol',
-      'esri/Color',
-      'esri/Graphic',
-      'esri/widgets/Track'
+      'esri/widgets/Track',
+      'esri/Graphic'
     ])
-    .then(([EsriMap, EsriMapView, FeatureLayer, Point, SimpleMarkerSymbol, SimpleLineSymbol, Color, Graphic, Track]) => {
+    .then(([EsriMap, EsriMapView, FeatureLayer, Point, Track, Graphic]) => {
       
       this.Point = Point;
-      const featureLayer = new FeatureLayer({
-        url: "https://services7.arcgis.com/0A8SPugLkdU8g5QU/arcgis/rest/services/IBRA7Subregion/FeatureServer"
+      this.Graphic = Graphic;
+
+      let popupTemplate = {
+        title: "Subregion: {IBRA_SUB_N}",
+        content: `
+        <h4>Details of this subregion:</h4>
+        <p><b>State</b>: {STATE}</p>
+        <i>Todo: Find more information</i>
+        `
+      };
+
+      this.featureLayer = new FeatureLayer({
+        url: "https://services7.arcgis.com/0A8SPugLkdU8g5QU/arcgis/rest/services/IBRA7Subregion/FeatureServer",
+        outFields: ["*"],
+        popupTemplate,
+        opacity: this._opacity
+      })
+
+      this.featureLayer.on('click', event => {
+        console.log(event);
       })
 
       Object.keys(this.maps).forEach(mapType => {
@@ -83,7 +109,6 @@ export class EsriMapComponent implements OnInit {
           basemap: mapType
         };
         let map: esri.Map = new EsriMap(mapProperties);
-        map.add(featureLayer);
         this.maps[mapType] = map;
       })
 
@@ -94,35 +119,42 @@ export class EsriMapComponent implements OnInit {
         zoom: this._zoom,
         map: this.maps[this._currentMap]
       };
-
       
       this.mapView = new EsriMapView(mapViewProperties);
-      this.trackWidget = new Track({
-        view: this.mapView
+      this.mapView.map.add(this.featureLayer);
+      // this.trackWidget = new Track({
+      //   view: this.mapView
+      // })
+
+      // this.mapView.ui.add(this.trackWidget, 'top-left');
+      // this.trackWidget.on('track', event => {
+      //   console.log('tracking...');
+      //   console.log(event);
+      // })
+
+      // this.trackWidget.on('track-error', event => {
+      //   alert("Cannot track location. Please refresh.");
+      //   console.log('Track error');
+      //   console.log(event);
+      // })
+
+      this.featureLayer.on('layerview-create', event => {
+        let layerView = event.layerView;
+        layerView.watch('updating', val => {
+          if (!val) {
+            // All the resources in the MapView and the map have loaded. Now execute additional processes
+            this.mapLoaded.emit(true);
+
+            //Query features available for drawing in the layer view.
+            //Returns Array<Graphic>. If !params, all features are returned.
+            layerView.queryFeatures().then(results => { 
+              this.addSideBar(results);
+            })
+          }
+        })
       })
 
-      this.mapView.ui.add(this.trackWidget, 'top-left');
-      this.trackWidget.on('track', event => {
-        console.log('tracking...');
-        console.log(event);
-      })
-
-      this.trackWidget.on('track-error', event => {
-        alert("Cannot track location. Please refresh.");
-        console.log('Track error');
-        console.log(event);
-      })
-      
-      this.mapView.when(() => {
-        // All the resources in the MapView and the map have loaded. Now execute additional processes
-        this.mapLoaded.emit(true);
-        //track does not work properly. perhaps its domain issue.
-        // this.trackWidget.start();
-        this.getLocation();
-
-      }, err => {
-        console.error(err);
-      });
+      this.getLocation();
     })
     .catch(err => {
       console.error(err);
@@ -160,8 +192,23 @@ export class EsriMapComponent implements OnInit {
         // let marker = new this.SimpleMarkerSymbol(this.SimpleMarkerSymbol.STYLE_CIRCLE, 12, line, new this.Color([210, 105, 30, 0.9]))
         // //add marker graphic here
         // let graphic = new this.Graphic(point, marker);
+        
+        let marker = {
+          type: "simple-marker",
+          color: [0, 0, 255],
+          outline: {
+            color: [0, 191, 255],
+            width: 2
+          }
+        }
+
+        let markerGraphic = new this.Graphic({
+          geometry: point,
+          symbol: marker
+        })
+
         this.mapView.center = point;
-        // this.mapView.graphics.add(graphic);
+        this.mapView.graphics.add(markerGraphic);
 
         /*
           Todo: Add loading message
@@ -173,11 +220,64 @@ export class EsriMapComponent implements OnInit {
         //   this.mapView.center = point;
         // }, this.locationError);
       }, this.locationError, {timeout: 40000, maximumAge: 560000, enableHighAccuracy: false});
-  
-      //  Update position
-      
+ 
     }
 
+  }
 
+  addSideBar(results){
+    let subregionListNode = document.getElementById("subregion_list");
+    let fragment = document.createDocumentFragment();
+    console.log(results[0].geometry);
+    console.log(results[0].geometry.rings);
+    results.forEach(result => {
+      result.attributes.ZIP = "TODO";
+    })
+     
+
+    let stubNearbyRegions = [
+      {
+        name: "Conondale Ranges",
+        state: "QLD",
+        zip: "TODO"
+      },
+      {
+        name: "Moreton Basin",
+        state: "QLD",
+        zip: "TODO"
+      },
+      {
+        name: "Coldcoast Lowlands",
+        state: "QLD",
+        zip: "TODO"
+      },
+      {
+        name: "Scenic Rim",
+        state: "QLD",
+        zip: "TODO"
+      },
+      {
+        name: "Woodenbong",
+        state: "QLD",
+        zip: "TODO"
+      },
+    ]
+
+    
+    stubNearbyRegions.forEach(subregion => {
+      let li = document.createElement("li");
+      li.classList.add("panel-result");
+      li.tabIndex = 0;
+      li.textContent = `${subregion.name} (${subregion.state})`;
+      fragment.appendChild(li);
+    })
+    subregionListNode.innerHTML = "";
+    subregionListNode.appendChild(fragment);
+
+
+    subregionListNode.addEventListener('click', event => {
+      let target = event.target;
+
+    })
   }
 }

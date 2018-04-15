@@ -1,1 +1,23 @@
 /* You can add global styles to this file, and also import other style files */
+/* these are generated after load. Maybe thats why component.css has no effect. */
+html, body, app-root, .container, app-esri-map {
+    height:100%;
+}
+
+.panel-side li {
+    list-style: none;
+    padding: 10px 20px;
+}
+
+.panel-result {
+    cursor: pointer;
+    margin: 2px 0;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.panel-result:hover,
+.panel-result:focus {
+    color: orange;
+    background-color: rgba(0, 0, 0, 0.75);
+}
+/**********************************8 */

@@ -7,11 +7,19 @@ import { Subject } from 'rxjs/Subject';
 })
 export class AppComponent {
   title = 'app';
-  maps = ['topology', 'satellite', 'streets'];
+  maps = ['topo', 'satellite', 'streets'];
   currentMap = 'streets';
+  opacity = 0.6;
   mapSelected: Subject<string> = new Subject();
-
+  opacityChanged: Subject<number> = new Subject();
   onSelect(map: string) {
+    this.currentMap = map;
     this.mapSelected.next(map);
+  }
+
+  onChangeOpacity(e) {
+    console.log('opacity');
+    console.log(e);
+    this.opacityChanged.next(e.target.value);
   }
 }
