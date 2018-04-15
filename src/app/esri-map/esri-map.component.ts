@@ -181,7 +181,7 @@ export class EsriMapComponent implements OnInit {
   locationError(error) {
     console.log(`location error: ${error.message}`);
     switch(error.code){
-      case error.PERMISSION_DENIED: alert("Error: Location not provided");
+      case error.PERMISSION_DENIED: alert("Error: Location permission denied");
         break;
       case error.POSITION_UNAVAILABLE: alert("Current location is not available");
         break;
@@ -243,10 +243,7 @@ export class EsriMapComponent implements OnInit {
   addSideBar(results){
     let subregionListNode = document.getElementById("subregion_list");
     let fragment = document.createDocumentFragment();
-    results.forEach(result => {
-      result.attributes.ZIP = "TODO";
-    })
-    console.log(results.length);
+ 
     this.subregions = results.length;
     for(let i = 0; i < 10; i++){
       let li = document.createElement("li");
