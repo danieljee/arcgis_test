@@ -12,7 +12,7 @@ export class AppComponent {
   opacity = 0.6;
   mapSelected: Subject<string> = new Subject();
   opacityChanged: Subject<number> = new Subject();
-
+  isCollapsed = false;
 
 
   onSelect(map: string) {
