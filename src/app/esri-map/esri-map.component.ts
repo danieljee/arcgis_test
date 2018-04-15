@@ -30,7 +30,7 @@ export class EsriMapComponent implements OnInit {
   private Circle;
   private Graphic;
 
-  private subregions = 0;
+  subregions = 0;
 
   @Input()
     set zoom(zoom: number) {
