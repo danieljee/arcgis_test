@@ -22,7 +22,6 @@ export class EsriMapComponent implements OnInit {
   };
 
   private mapView: esri.MapView;
-  private locationLoading = false;
   private _currentMap = 'streets';
   private featureLayer
   private trackWidget;
@@ -31,6 +30,7 @@ export class EsriMapComponent implements OnInit {
   private Circle;
   private Graphic;
 
+  private subregions = 0;
 
   @Input()
     set zoom(zoom: number) {
@@ -58,7 +58,9 @@ export class EsriMapComponent implements OnInit {
   // this is needed to be able to create the MapView at the DOM element in this component
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
-  constructor() { }
+  constructor() {
+    this.handlePointerEvent = this.handlePointerEvent.bind(this);
+  }
 
   public ngOnInit() {
     console.log('oninit');
@@ -77,9 +79,11 @@ export class EsriMapComponent implements OnInit {
       'esri/layers/FeatureLayer',
       'esri/geometry/Point',
       'esri/widgets/Track',
-      'esri/Graphic'
+      'esri/Graphic',
+      'esri/widgets/Compass',
+      'esri/widgets/Search',
     ])
-    .then(([EsriMap, EsriMapView, FeatureLayer, Point, Track, Graphic]) => {
+    .then(([EsriMap, EsriMapView, FeatureLayer, Point, Track, Graphic, Compass, Search]) => {
       
       this.Point = Point;
       this.Graphic = Graphic;
@@ -87,7 +91,7 @@ export class EsriMapComponent implements OnInit {
       let popupTemplate = {
         title: "Subregion: {IBRA_SUB_N}",
         content: `
-        <h4>Details of this subregion:</h4>
+        <h5>Details of this subregion:</h5>
         <p><b>State</b>: {STATE}</p>
         <i>Todo: Find more information</i>
         `
@@ -97,11 +101,8 @@ export class EsriMapComponent implements OnInit {
         url: "https://services7.arcgis.com/0A8SPugLkdU8g5QU/arcgis/rest/services/IBRA7Subregion/FeatureServer",
         outFields: ["*"],
         popupTemplate,
-        opacity: this._opacity
-      })
-
-      this.featureLayer.on('click', event => {
-        console.log(event);
+        opacity: this._opacity,
+        minScale: 0
       })
 
       Object.keys(this.maps).forEach(mapType => {
@@ -122,6 +123,20 @@ export class EsriMapComponent implements OnInit {
       
       this.mapView = new EsriMapView(mapViewProperties);
       this.mapView.map.add(this.featureLayer);
+      
+      //  Widgets
+      let compass = new Compass({
+        view: this.mapView
+      })
+
+      let search = new Search({
+        view: this.mapView
+      })
+      this.mapView.ui.add(search, 'bottom-left');
+      this.mapView.ui.add(compass, 'bottom-left');
+      
+      this.mapView.on('pointer-move', this.handlePointerEvent)
+      this.mapView.on('pointer-down', this.handlePointerEvent)
       // this.trackWidget = new Track({
       //   view: this.mapView
       // })
@@ -148,6 +163,7 @@ export class EsriMapComponent implements OnInit {
             //Query features available for drawing in the layer view.
             //Returns Array<Graphic>. If !params, all features are returned.
             layerView.queryFeatures().then(results => { 
+              console.log('addsidebar');
               this.addSideBar(results);
             })
           }
@@ -183,7 +199,6 @@ export class EsriMapComponent implements OnInit {
     if(navigator.geolocation) {
       console.log("location.");
       //  Load position
-      this.locationLoading = true;
       navigator.geolocation.getCurrentPosition(location => {
         console.log("location");
         
@@ -228,56 +243,67 @@ export class EsriMapComponent implements OnInit {
   addSideBar(results){
     let subregionListNode = document.getElementById("subregion_list");
     let fragment = document.createDocumentFragment();
-    console.log(results[0].geometry);
-    console.log(results[0].geometry.rings);
     results.forEach(result => {
       result.attributes.ZIP = "TODO";
     })
-     
-
-    let stubNearbyRegions = [
-      {
-        name: "Conondale Ranges",
-        state: "QLD",
-        zip: "TODO"
-      },
-      {
-        name: "Moreton Basin",
-        state: "QLD",
-        zip: "TODO"
-      },
-      {
-        name: "Coldcoast Lowlands",
-        state: "QLD",
-        zip: "TODO"
-      },
-      {
-        name: "Scenic Rim",
-        state: "QLD",
-        zip: "TODO"
-      },
-      {
-        name: "Woodenbong",
-        state: "QLD",
-        zip: "TODO"
-      },
-    ]
-
-    
-    stubNearbyRegions.forEach(subregion => {
+    console.log(results.length);
+    this.subregions = results.length;
+    for(let i = 0; i < 10; i++){
       let li = document.createElement("li");
       li.classList.add("panel-result");
       li.tabIndex = 0;
-      li.textContent = `${subregion.name} (${subregion.state})`;
+      li.textContent = `${results[i].attributes.IBRA_SUB_N} (${results[i].attributes.STATE})`;
+      li.setAttribute('data-result-id', i.toString());
       fragment.appendChild(li);
-    })
+    }
+    
     subregionListNode.innerHTML = "";
     subregionListNode.appendChild(fragment);
 
 
     subregionListNode.addEventListener('click', event => {
-      let target = event.target;
+      let target = <HTMLLIElement>event.target;
+      let resultId = target.getAttribute('data-result-id')
+      let result = resultId && results && results[resultId];
+      
+      if (result) {
+        this.mapView.popup.open({
+          features: [result],
+          location: result.geometry.centroid
+        })
 
+        this.mapView.center = result.geometry.centroid
+
+        let subregionDetail = document.getElementById('subregion-detail');
+        subregionDetail.innerHTML = "";
+        subregionDetail.innerHTML = `
+          <ul style="list-style:none;">
+            <li>Name: ${result.attributes.IBRA_SUB_N}</li>
+            <li>Region Name: ${result.attributes.IBRA_REG_N}</li>
+            <li>State: ${result.attributes.STATE}</li>
+          </ul>
+        `;
+      }
+    })
+  }
+
+  handlePointerEvent(event) {
+
+    this.mapView.hitTest(event).then(response => {
+      if (response.results.length) {
+        let graphic = response.results[0].graphic; //this is assuming that only 1 layer is below the cursor.
+        let attributes = graphic.attributes;
+
+        let subregionDetail = document.getElementById('subregion-detail');
+        subregionDetail.innerHTML = "";
+        subregionDetail.innerHTML = `
+          <ul style="list-style:none;">
+            <li>Name: ${attributes.IBRA_SUB_N}</li>
+            <li>Region Name: ${attributes.IBRA_REG_N}</li>
+            <li>State: ${attributes.STATE}</li>
+          </ul>
+        `;
+      }
     })
   }
 }

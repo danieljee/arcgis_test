@@ -1,5 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
 /* these are generated after load. Maybe thats why component.css has no effect. */
+html, body {
+    padding: 0;
+}
+
 html, body, app-root, .container, app-esri-map {
     height:100%;
 }

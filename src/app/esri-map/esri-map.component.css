@@ -5,6 +5,11 @@
   width: 100%;
 }
 
+@keyframes spin {
+  0% {transform: rotate(0deg);}
+  100% {transform: rotate(360deg);}
+}
+
 .panel-container {
   position: relative;
   width: 100%;
@@ -54,7 +59,13 @@
 } */
 
 @media (max-width: 575px) {
+  .panel-container {
+    height: 70%;
+  }
   .panel-side {
     display:none;
+  }
+  .esri-view {
+    height: 100%;
   }
 }

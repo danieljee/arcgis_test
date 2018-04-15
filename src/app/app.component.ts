@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 @Component({
   selector: 'app-root',
@@ -12,6 +12,9 @@ export class AppComponent {
   opacity = 0.6;
   mapSelected: Subject<string> = new Subject();
   opacityChanged: Subject<number> = new Subject();
+
+
+
   onSelect(map: string) {
     this.currentMap = map;
     this.mapSelected.next(map);
@@ -21,5 +24,10 @@ export class AppComponent {
     console.log('opacity');
     console.log(e);
     this.opacityChanged.next(e.target.value);
+  }
+
+  onMapLoaded() {
+    let overlay = document.getElementById("loading-overlay");
+    overlay.style.display = "none";
   }
 }
