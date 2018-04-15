@@ -163,7 +163,6 @@ export class EsriMapComponent implements OnInit {
             //Query features available for drawing in the layer view.
             //Returns Array<Graphic>. If !params, all features are returned.
             layerView.queryFeatures().then(results => { 
-              console.log('addsidebar');
               this.addSideBar(results);
             })
           }
@@ -179,7 +178,6 @@ export class EsriMapComponent implements OnInit {
 
 
   locationError(error) {
-    console.log(`location error: ${error.message}`);
     switch(error.code){
       case error.PERMISSION_DENIED: alert("Error: Location permission denied");
         break;
@@ -197,10 +195,8 @@ export class EsriMapComponent implements OnInit {
     */
   getLocation() {
     if(navigator.geolocation) {
-      console.log("location.");
       //  Load position
       navigator.geolocation.getCurrentPosition(location => {
-        console.log("location");
         
         let point = new this.Point(location.coords.longitude, location.coords.latitude);
         // let line = new this.SimpleLineSymbol(this.SimpleLineSymbol.STYLE_SOLID, new this.Color([210, 105, 30, 0.5]), 8);
@@ -245,11 +241,12 @@ export class EsriMapComponent implements OnInit {
     let fragment = document.createDocumentFragment();
  
     this.subregions = results.length;
-    for(let i = 0; i < 10; i++){
+    for(let i = 0; i < 7; i++){
+      let result = results[i];
       let li = document.createElement("li");
       li.classList.add("panel-result");
       li.tabIndex = 0;
-      li.textContent = `${results[i].attributes.IBRA_SUB_N} (${results[i].attributes.STATE})`;
+      li.textContent = `${result.attributes.IBRA_SUB_N} (${result.attributes.STATE})`;
       li.setAttribute('data-result-id', i.toString());
       fragment.appendChild(li);
     }
