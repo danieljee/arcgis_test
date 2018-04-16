@@ -18,17 +18,19 @@ export class EsriMapComponent implements OnInit {
   private maps = {
     topo: null,
     streets: null,
-    satellite: null
+    satellite: null,
+    dark_gray: null
   };
 
   private mapView: esri.MapView;
-  private _currentMap = 'streets';
+  private _currentMap = 'dark_gray';
   private featureLayer
   private trackWidget;
   //pointers to Esri classes
   private Point;
   private Circle;
   private Graphic;
+  private SimpleFillSymbol;
 
   subregions = 0;
 
@@ -52,6 +54,7 @@ export class EsriMapComponent implements OnInit {
 
   @Input() _mapSelected: Subject<string>;
   @Input() _opacityChanged: Subject<number>;
+  @Input() _outlineChanged: Subject<any>;
 
   @Output() mapLoaded = new EventEmitter<boolean>();
 
@@ -63,7 +66,7 @@ export class EsriMapComponent implements OnInit {
   }
 
   public ngOnInit() {
-    console.log('oninit');
+
     this._mapSelected.subscribe(mapType => {
       this.mapView.map = this.maps[mapType];
       this.mapView.map.add(this.featureLayer);
@@ -72,6 +75,10 @@ export class EsriMapComponent implements OnInit {
       this.featureLayer.opacity = opacity;
     })
 
+    this._outlineChanged.subscribe(outline => {
+      console.log(outline);
+      this.featureLayer.renderer.symbol.outline.color = outline.color;
+    })
 
     loadModules([
       'esri/Map',
@@ -82,11 +89,13 @@ export class EsriMapComponent implements OnInit {
       'esri/Graphic',
       'esri/widgets/Compass',
       'esri/widgets/Search',
+      'esri/symbols/SimpleFillSymbol'
     ])
-    .then(([EsriMap, EsriMapView, FeatureLayer, Point, Track, Graphic, Compass, Search]) => {
+    .then(([EsriMap, EsriMapView, FeatureLayer, Point, Track, Graphic, Compass, Search, SimpleFillSymbol]) => {
       
       this.Point = Point;
       this.Graphic = Graphic;
+      this.SimpleFillSymbol = SimpleFillSymbol;
 
       let popupTemplate = {
         title: "Subregion: {IBRA_SUB_N}",
@@ -107,7 +116,7 @@ export class EsriMapComponent implements OnInit {
 
       Object.keys(this.maps).forEach(mapType => {
         let mapProperties: esri.MapProperties = {
-          basemap: mapType
+          basemap: mapType == 'dark_gray' ? 'dark-gray': mapType
         };
         let map: esri.Map = new EsriMap(mapProperties);
         this.maps[mapType] = map;
@@ -137,21 +146,6 @@ export class EsriMapComponent implements OnInit {
       
       this.mapView.on('pointer-move', this.handlePointerEvent)
       this.mapView.on('pointer-down', this.handlePointerEvent)
-      // this.trackWidget = new Track({
-      //   view: this.mapView
-      // })
-
-      // this.mapView.ui.add(this.trackWidget, 'top-left');
-      // this.trackWidget.on('track', event => {
-      //   console.log('tracking...');
-      //   console.log(event);
-      // })
-
-      // this.trackWidget.on('track-error', event => {
-      //   alert("Cannot track location. Please refresh.");
-      //   console.log('Track error');
-      //   console.log(event);
-      // })
 
       this.featureLayer.on('layerview-create', event => {
         let layerView = event.layerView;
@@ -159,7 +153,7 @@ export class EsriMapComponent implements OnInit {
           if (!val) {
             // All the resources in the MapView and the map have loaded. Now execute additional processes
             this.mapLoaded.emit(true);
-
+            console.log(JSON.stringify(this.featureLayer.renderer))
             //Query features available for drawing in the layer view.
             //Returns Array<Graphic>. If !params, all features are returned.
             layerView.queryFeatures().then(results => { 
@@ -221,15 +215,6 @@ export class EsriMapComponent implements OnInit {
         this.mapView.center = point;
         this.mapView.graphics.add(markerGraphic);
 
-        /*
-          Todo: Add loading message
-        */
-
-        // navigator.geolocation.watchPosition(location => {
-        //   console.log("loc update");
-        //   let point = new this.Point(location.coords.longitude, location.coords.latitude);
-        //   this.mapView.center = point;
-        // }, this.locationError);
       }, this.locationError, {timeout: 40000, maximumAge: 560000, enableHighAccuracy: false});
  
     }
@@ -287,6 +272,26 @@ export class EsriMapComponent implements OnInit {
       if (response.results.length) {
         let graphic = response.results[0].graphic; //this is assuming that only 1 layer is below the cursor.
         let attributes = graphic.attributes;
+
+        let renderer = {
+          type: 'unique-value',
+          field: 'IBRA_SUB_N',
+          defaultSymbol: this.featureLayer.renderer.symbol || this.featureLayer.renderer.defaultSymbol,
+          uniqueValueInfos: [{
+            value: attributes.IBRA_SUB_N,
+            symbol: {
+              type: 'simple-fill',
+              color: [255, 0, 0, 0.9],
+              outline: {
+                color: [255,255,255,255], 
+                width: 0.75,
+              }
+            }
+          }]
+        }
+
+        this.featureLayer.renderer = renderer;
+        
 
         let subregionDetail = document.getElementById('subregion-detail');
         subregionDetail.innerHTML = "";

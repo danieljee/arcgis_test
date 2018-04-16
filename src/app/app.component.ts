@@ -7,12 +7,16 @@ import { Subject } from 'rxjs/Subject';
 })
 export class AppComponent {
   title = 'app';
-  maps = ['topo', 'satellite', 'streets'];
-  currentMap = 'streets';
+  maps = ['topo', 'satellite', 'streets', 'dark-gray'];
+  currentMap = 'dark-gray';
   opacity = 0.6;
   mapSelected: Subject<string> = new Subject();
   opacityChanged: Subject<number> = new Subject();
+  outlineChanged: Subject<any> = new Subject();
   isCollapsed = false;
+  outlineRed = 255;
+  outlineGreen = 255;
+  outlineBlue = 255;
 
 
   onSelect(map: string) {
@@ -21,9 +25,13 @@ export class AppComponent {
   }
 
   onChangeOpacity(e) {
-    console.log('opacity');
-    console.log(e);
     this.opacityChanged.next(e.target.value);
+  }
+
+  onChangeOutlineColor() {
+    this.outlineChanged.next({
+      color: [this.outlineRed, this.outlineGreen, this.outlineBlue, 255]
+    });
   }
 
   onMapLoaded() {

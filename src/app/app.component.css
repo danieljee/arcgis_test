@@ -38,6 +38,16 @@
     cursor: pointer;
 }
 
+.slider.slider-red::-webkit-slider-thumb {
+    background: rgb(250, 0, 0);
+}
+.slider.slider-green::-webkit-slider-thumb {
+    background: rgb(0, 250, 0);
+}
+.slider.slider-blue::-webkit-slider-thumb {
+    background: rgb(0, 0, 250);
+}
+
 .loading-overlay {
     position: fixed;
     width: 100%;
@@ -63,6 +73,13 @@
     height: 120px;
     animation: spin 2s linear infinite;
     z-index: 75;
+  }
+
+  .color-view{
+      width: 30px;
+      height:30px;
+      border-radius: 50%;
+      border-width: 2px;
   }
 
   @media (max-width: 575px) {
