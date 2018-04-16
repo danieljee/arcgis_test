@@ -18,11 +18,12 @@
             <input ngbButton type="radio" value="{{mapType}}" (click)="onSelect(mapType == 'topology'? 'topo': mapType)"> 
             {{mapType=="topo"? "Topology": mapType}}
           </label>
-          <button type="button" class="btn btn-outline-primary" (click)="isCollapsed = !isCollapsed"
+        </div>
+
+        <button type="button" class="btn btn-outline-primary mb-2 more" (click)="isCollapsed = !isCollapsed"
                   [attr.aria-expanded]="!isCollapsed" aria-controls="controlBox">
             More
           </button>
-        </div>
         
       </div>
     </div>
@@ -49,15 +50,22 @@
   </div>
 </div>
 
-<div class="{{isCollapsed? 'control-side-bar': 'control-side-bar-active'}} container-flex ">
-    <div class="flex-2"><p>Layer Opacity:</p></div>
-    <div class="flex-1">
-      <!-- Maybe add two more opacity: only for lines, only for body if possible
+<div class="{{isCollapsed? 'control-side-bar': 'control-side-bar-active'}}">
+    <button class="{{isCollapsed? 'panel-toggle': 'panel-toggle-close'}}" (click)="isCollapsed = !isCollapsed">
+        <span></span>
+    </button>
+    <div class="row">
+      <div class="col-sm-4">
+          <p>Layer Opacity:</p>
+      </div>
+      <div class="col-sm-8">
+        <!-- Maybe add two more opacity: only for lines, only for body if possible
               and make the sliders vertical in a group -->
               <input type="range" min="0" max="1" value="0.6" step="0.1" class="slider" (change)="onChangeOpacity($event)"/>
               <!-- <input type="range" min="0" max="255" value="255" step="1" class="slider slider-red" (change)="onChangeOutlineColor()"/>
               <input type="range" min="0" max="255" value="255" step="1" class="slider slider-green" (change)="onChangeOutlineColor()"/>
               <input type="range" min="0" max="255" value="255" step="1" class="slider slider-blue" (change)="onChangeOutlineColor()"/> -->
+      </div>
     </div>
           
 </div>
