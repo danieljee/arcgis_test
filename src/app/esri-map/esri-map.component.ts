@@ -32,6 +32,8 @@ export class EsriMapComponent implements OnInit {
   private Graphic;
   private SimpleFillSymbol;
 
+
+  panelOpen = true;
   subregions = 0;
 
   @Input()
@@ -222,6 +224,9 @@ export class EsriMapComponent implements OnInit {
   }
 
   addSideBar(results){
+
+    if(!this.panelOpen) return;
+
     let subregionListNode = document.getElementById("subregion_list");
     let fragment = document.createDocumentFragment();
  
@@ -284,7 +289,7 @@ export class EsriMapComponent implements OnInit {
               color: [255, 0, 0, 0.9],
               outline: {
                 color: [255,255,255,255], 
-                width: 0.75,
+                width: 0.75
               }
             }
           }]

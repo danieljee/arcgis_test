@@ -1,6 +1,9 @@
 <div style="height:100%">
     <div class="panel-container" style="height:100%"> 
-        <div class="panel-side">
+        <button class="{{panelOpen? 'panel-toggle-close': 'panel-toggle'}}" (click)="panelOpen = !panelOpen">
+            <span></span>
+        </button>
+        <div class="panel-side" [ngStyle]="{'display': panelOpen? 'block': 'none'}">
             <h3 class="ml-2 mr-2">Subregions Within View ({{subregions}})</h3>
             <ul id="subregion_list">
                 <li id="list-loading">Loading...</li>

@@ -16,6 +16,100 @@
   height: 100%;
 }
 
+.panel-toggle {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    transition: .40s;
+    z-index: 65;
+}
+.panel-toggle span {
+  width: 30px;
+  height: 3px;
+  background: #FFF;
+  position: absolute;
+  top: 0;
+  right: 0;
+  transition: .40s;
+}
+.panel-toggle span:before {
+width: 30px;
+height: 3px;
+background: #FFF;
+position: absolute;
+top: 7px;
+right: 0;
+content: '';
+transition: .40s;
+}
+
+.panel-toggle span:after {
+width: 30px;
+height: 3px;
+background: #FFF;
+position: absolute;
+top: 14px;
+right: 0;
+content: '';
+transition: .40s;
+}
+
+/* Close btn */
+.panel-toggle-close {
+  position: absolute;
+  background: none;
+  top: 15px;
+  right: 15px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: .40s;
+  z-index: 65;
+}
+
+.panel-toggle-close span {
+width: 30px;
+height: 3px;
+background: #FFF;
+position: absolute;
+top: 10px;
+right: 0;
+border-radius: 3px;
+transition: .40s;
+transform: rotate(45deg);
+}
+.panel-toggle-close span:before {
+width: 100%;
+height: 3px;
+border-radius: 3px;
+content: '';
+position: absolute;
+top: 7px;
+right: 0;
+background: transparent;
+transition: .40s
+}
+.panel-toggle-close span:after {
+width: 100%;
+height: 3px;
+border-radius: 3px;
+content: '';
+position: absolute;
+top: 0px;
+right: 0;
+background: #FFF;
+transition: .40s;
+transform: rotate(-90deg);
+}
+
 .panel-side {
   padding: 2px;
   box-sizing: border-box;
