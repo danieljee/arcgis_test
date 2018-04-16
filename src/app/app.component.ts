@@ -13,7 +13,7 @@ export class AppComponent {
   mapSelected: Subject<string> = new Subject();
   opacityChanged: Subject<number> = new Subject();
   outlineChanged: Subject<any> = new Subject();
-  isCollapsed = false;
+  isCollapsed = true;
   outlineRed = 255;
   outlineGreen = 255;
   outlineBlue = 255;

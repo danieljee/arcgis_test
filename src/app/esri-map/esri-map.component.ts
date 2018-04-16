@@ -18,12 +18,12 @@ export class EsriMapComponent implements OnInit {
   private maps = {
     topo: null,
     streets: null,
-    satellite: null,
-    dark_gray: null
+    satellite: null
   };
+  
 
   private mapView: esri.MapView;
-  private _currentMap = 'dark_gray';
+  private _currentMap = 'dark-gray';
   private featureLayer
   private trackWidget;
   //pointers to Esri classes
@@ -33,7 +33,7 @@ export class EsriMapComponent implements OnInit {
   private SimpleFillSymbol;
 
 
-  panelOpen = true;
+  panelOpen = false;
   subregions = 0;
 
   @Input()
@@ -64,12 +64,15 @@ export class EsriMapComponent implements OnInit {
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
   constructor() {
+    this.maps['dark-gray'] = null;
     this.handlePointerEvent = this.handlePointerEvent.bind(this);
   }
 
   public ngOnInit() {
 
     this._mapSelected.subscribe(mapType => {
+      if (mapType == this._currentMap) return;
+      this._currentMap = mapType;
       this.mapView.map = this.maps[mapType];
       this.mapView.map.add(this.featureLayer);
     })
@@ -99,26 +102,16 @@ export class EsriMapComponent implements OnInit {
       this.Graphic = Graphic;
       this.SimpleFillSymbol = SimpleFillSymbol;
 
-      let popupTemplate = {
-        title: "Subregion: {IBRA_SUB_N}",
-        content: `
-        <h5>Details of this subregion:</h5>
-        <p><b>State</b>: {STATE}</p>
-        <i>Todo: Find more information</i>
-        `
-      };
-
       this.featureLayer = new FeatureLayer({
         url: "https://services7.arcgis.com/0A8SPugLkdU8g5QU/arcgis/rest/services/IBRA7Subregion/FeatureServer",
         outFields: ["*"],
-        popupTemplate,
         opacity: this._opacity,
         minScale: 0
       })
-
+      
       Object.keys(this.maps).forEach(mapType => {
         let mapProperties: esri.MapProperties = {
-          basemap: mapType == 'dark_gray' ? 'dark-gray': mapType
+          basemap: mapType
         };
         let map: esri.Map = new EsriMap(mapProperties);
         this.maps[mapType] = map;
@@ -153,12 +146,27 @@ export class EsriMapComponent implements OnInit {
         let layerView = event.layerView;
         layerView.watch('updating', val => {
           if (!val) {
-            // All the resources in the MapView and the map have loaded. Now execute additional processes
             this.mapLoaded.emit(true);
-            console.log(JSON.stringify(this.featureLayer.renderer))
-            //Query features available for drawing in the layer view.
-            //Returns Array<Graphic>. If !params, all features are returned.
+            
             layerView.queryFeatures().then(results => { 
+
+              let attributes = Object.keys(results[0].attributes);
+              let popupContent = attributes.reduce((str, cur) => {
+                  let temp = `<b>${cur.toLowerCase}</b>: {${cur}}`;
+                  return str + temp;
+              }, '')
+
+              let popupTemplate = {
+                title: "Subregion: {IBRA_SUB_N}",
+                content: `
+                <h5>Details of this subregion:</h5>
+                <hr/>
+                ${popupContent}
+                `
+              };
+
+              this.featureLayer.popupTemplate = popupTemplate;
+
               this.addSideBar(results);
             })
           }

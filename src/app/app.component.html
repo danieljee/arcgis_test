@@ -24,21 +24,6 @@
           </button>
         </div>
         
-        <div id="controlBox" class="mt-2 mb-2" [ngbCollapse]="!isCollapsed">
-          <div class="card">
-            <div class="card-body">
-              <p>Layer Opacity:</p>
-              <!-- Maybe add two more opacity: only for lines, only for body if possible
-                  and make the sliders vertical in a group -->
-              <input type="range" min="0" max="1" value="0.6" step="0.1" class="slider" (change)="onChangeOpacity($event)"/>
-              <p>Layer outline:</p> <div class="color-view"></div>
-              <!-- <input type="range" min="0" max="255" value="255" step="1" class="slider slider-red" (change)="onChangeOutlineColor()"/>
-              <input type="range" min="0" max="255" value="255" step="1" class="slider slider-green" (change)="onChangeOutlineColor()"/>
-              <input type="range" min="0" max="255" value="255" step="1" class="slider slider-blue" (change)="onChangeOutlineColor()"/> -->
-            </div>
-          </div>
-        </div>
-        
       </div>
     </div>
 
@@ -62,5 +47,18 @@
   <div class="bottom">
 
   </div>
+</div>
+
+<div class="{{isCollapsed? 'control-side-bar': 'control-side-bar-active'}} container-flex ">
+    <div class="flex-2"><p>Layer Opacity:</p></div>
+    <div class="flex-1">
+      <!-- Maybe add two more opacity: only for lines, only for body if possible
+              and make the sliders vertical in a group -->
+              <input type="range" min="0" max="1" value="0.6" step="0.1" class="slider" (change)="onChangeOpacity($event)"/>
+              <!-- <input type="range" min="0" max="255" value="255" step="1" class="slider slider-red" (change)="onChangeOutlineColor()"/>
+              <input type="range" min="0" max="255" value="255" step="1" class="slider slider-green" (change)="onChangeOutlineColor()"/>
+              <input type="range" min="0" max="255" value="255" step="1" class="slider slider-blue" (change)="onChangeOutlineColor()"/> -->
+    </div>
+          
 </div>
 

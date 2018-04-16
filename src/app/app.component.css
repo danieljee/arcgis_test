@@ -23,6 +23,7 @@
     opacity: 0.7;
     -webkit-transition: .2s;
     transition: opacity .2s;
+    margin:auto;
 }
 
 .slider:hover {
@@ -59,28 +60,57 @@
     z-index: 70;
   }
   
-  .spinner {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin:auto;
-    border: 16px solid #f4f4f4;
-    border-top: 16px solid #3498db;
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    animation: spin 2s linear infinite;
-    z-index: 75;
-  }
+.spinner {
+position: fixed;
+top: 0;
+bottom: 0;
+left: 0;
+right: 0;
+margin:auto;
+border: 16px solid #f4f4f4;
+border-top: 16px solid #3498db;
+border-radius: 50%;
+width: 120px;
+height: 120px;
+animation: spin 2s linear infinite;
+z-index: 75;
+}
 
-  .color-view{
-      width: 30px;
-      height:30px;
-      border-radius: 50%;
-      border-width: 2px;
-  }
+.color-view{
+    width: 30px;
+    height:30px;
+    border-radius: 50%;
+    border-width: 2px;
+}
+
+.control-side-bar {
+    position:absolute;
+    width: 0px;
+    height: 100vh;
+    top: 0;
+    left: -250px;
+    transition: .40s;
+}
+
+.control-side-bar-active {
+    position:absolute;
+    color: #fff;
+    background: rgba(50, 50, 50, 0.7);
+    width: 18vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    transition: .40s;
+    box-shadow: 10px 0px 10px rgba(0,0,0,.1);
+    padding: 20px;
+}
+
+.look-and-feel {
+    position:absolute;
+    top: 5;
+    left: 0;
+    width: 100%;
+}
 
   @media (max-width: 575px) {
     .flex-1 {

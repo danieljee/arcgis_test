@@ -2,6 +2,7 @@
 /* these are generated after load. Maybe thats why component.css has no effect. */
 html, body {
     padding: 0;
+    overflow-x: hidden;
 }
 
 html, body, app-root, .container, app-esri-map {
