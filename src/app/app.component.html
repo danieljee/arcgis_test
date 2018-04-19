@@ -6,29 +6,25 @@
 
 <div class="container">
     
-  <div class="top text-center mt-4 mb-4">
+  <div class="top text-center">
     <h3 style="color:#555">Arcgis Example</h3>
   </div>
 
   <div class="container-flex">
     <div class="flex-1">
       <div class="mapControl">
-        <div class="btn-group btn-group-toggle mb-2" ngbRadioGroup name="radioBasic" [(ngModel)]="currentMap">
+        <div class="btn-group btn-group-toggle" ngbRadioGroup name="radioBasic" [(ngModel)]="currentMap">
           <label *ngFor="let mapType of maps" ngbButtonLabel class="btn-primary">
             <input ngbButton type="radio" value="{{mapType}}" (click)="onSelect(mapType == 'topology'? 'topo': mapType)"> 
             {{mapType=="topo"? "Topology": mapType}}
           </label>
         </div>
 
-        <button type="button" class="btn btn-outline-primary mb-2 more" (click)="isCollapsed = !isCollapsed"
-                  [attr.aria-expanded]="!isCollapsed" aria-controls="controlBox">
-            More
-          </button>
-        
+        <button type="button" class="btn btn-outline-primary more" (click)="isCollapsed = !isCollapsed"
+                [attr.aria-expanded]="!isCollapsed" aria-controls="controlBox">More</button>
+      
       </div>
     </div>
-
-    <div class="flex-2"></div>
   </div>
 
   <div class="container-flex" style="height:100%">
@@ -38,7 +34,8 @@
 
     <div class="flex-2">
         <div class="card" style="height:70%;">
-          <div class="card-body" style="height:70%;" id="subregion-detail">
+          <div class="card-header" style="height:30%">Your region</div>
+          <div class="card-body" style="height:40%;" id="subregion-detail">
             This is where subregion information goes
           </div>
         </div>
