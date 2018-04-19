@@ -22,12 +22,14 @@ export class EsriMapComponent implements OnInit {
   };
   private userScreenPoint;
   private userRegionIdentified = false;
+  private IBRA_SUB_N;
 
   private mapView: esri.MapView;
   private _currentMap = 'dark-gray';
   private featureLayer
   private trackWidget;
   private userRegion;
+  private subregionDetail;
   //pointers to Esri classes
   private Point;
   private Circle;
@@ -71,7 +73,7 @@ export class EsriMapComponent implements OnInit {
   }
 
   public ngOnInit() {
-
+    this.subregionDetail = document.getElementById('subregion-detail');
     this._mapSelected.subscribe(mapType => {
       if (mapType == this._currentMap) return;
       this._currentMap = mapType;
@@ -154,46 +156,24 @@ export class EsriMapComponent implements OnInit {
       this.mapView.on('pointer-move', this.handlePointerEvent)
       this.mapView.on('pointer-down', this.handlePointerEvent)
 
+      this.getLocation();
+
       this.featureLayer.on('layerview-create', event => {
         let layerView = event.layerView;
+
         layerView.watch('updating', val => {
           if (!val) {
             this.mapLoaded.emit(true); //should only be emitted once.
-            
+            this.identifyUserRegion();  
             //Skip query on certain condition to save performance.
-            if(this.userRegionIdentified && !this.panelOpen) return;
+            if(!this.panelOpen) return;
             layerView.queryFeatures().then(results => { 
-              this.mapView.hitTest(this.mapView.toScreen(this.userScreenPoint)).then(response => {
-                let graphic = response.results[1].graphic; //there will be at least two results.
-                let attributes = graphic.attributes;
-
-                let renderer = {
-                  type: 'unique-value',
-                  field: 'IBRA_SUB_N',
-                  defaultSymbol: this.featureLayer.renderer.symbol || this.featureLayer.renderer.defaultSymbol,
-                  uniqueValueInfos: [{
-                    value: attributes.IBRA_SUB_N,
-                    symbol: {
-                      type: 'simple-fill',
-                      color: [0, 255, 0, 0.9],
-                      outline: {
-                        color: [255,255,255,255], 
-                        width: 0.75
-                      }
-                    }
-                  }]
-                }
-        
-                this.featureLayer.renderer = renderer;
-              })
-              
               this.addSideBar(results);
             })
           }
         })
       })
 
-      this.getLocation();
     })
     .catch(err => {
       console.error(err);
@@ -218,39 +198,41 @@ export class EsriMapComponent implements OnInit {
       Geolocation
     */
   getLocation() {
-    if(navigator.geolocation) {
-      //  Load position
-      navigator.geolocation.getCurrentPosition(location => {
-        
-        let point = new this.Point(location.coords.longitude, location.coords.latitude);
+    return new Promise((resolve, reject) => {
 
-        this.userScreenPoint = point;
-        // let line = new this.SimpleLineSymbol(this.SimpleLineSymbol.STYLE_SOLID, new this.Color([210, 105, 30, 0.5]), 8);
-        // let marker = new this.SimpleMarkerSymbol(this.SimpleMarkerSymbol.STYLE_CIRCLE, 12, line, new this.Color([210, 105, 30, 0.9]))
-        // //add marker graphic here
-        // let graphic = new this.Graphic(point, marker);
-        
-        let marker = {
-          type: "simple-marker",
-          color: [0, 0, 255],
-          outline: {
-            color: [0, 191, 255],
-            width: 2
+      if(navigator.geolocation) {
+        //  Load position
+        navigator.geolocation.getCurrentPosition(location => {
+          
+          let point = new this.Point(location.coords.longitude, location.coords.latitude);
+  
+          this.userScreenPoint = point;
+          // let line = new this.SimpleLineSymbol(this.SimpleLineSymbol.STYLE_SOLID, new this.Color([210, 105, 30, 0.5]), 8);
+          // let marker = new this.SimpleMarkerSymbol(this.SimpleMarkerSymbol.STYLE_CIRCLE, 12, line, new this.Color([210, 105, 30, 0.9]))
+          // //add marker graphic here
+          // let graphic = new this.Graphic(point, marker);
+          
+          let marker = {
+            type: "simple-marker",
+            color: [0, 0, 255],
+            outline: {
+              color: [0, 191, 255],
+              width: 2
+            }
           }
-        }
-
-        let markerGraphic = new this.Graphic({
-          geometry: point,
-          symbol: marker
-        })
-
-        this.mapView.center = point;
-        this.mapView.graphics.add(markerGraphic);
-
-      }, this.locationError, {timeout: 40000, maximumAge: 560000, enableHighAccuracy: false});
- 
-    }
-
+  
+          let markerGraphic = new this.Graphic({
+            geometry: point,
+            symbol: marker
+          })
+  
+          this.mapView.center = point;
+          this.mapView.graphics.add(markerGraphic);
+          resolve();
+        }, (error) => {reject(); this.locationError(error);}, {timeout: 40000, maximumAge: 560000, enableHighAccuracy: false});
+   
+      } else { reject(); }
+    })
   }
 
   addSideBar(results){
@@ -322,20 +304,92 @@ export class EsriMapComponent implements OnInit {
                 width: 0.75
               }
             }
+          }, {
+            value: this.IBRA_SUB_N,
+            symbol: {
+              type: 'simple-fill',
+              color: [0, 0, 30, 0.7],
+              outline: {
+                color: [0,255,0,255], 
+                width: 0.75
+              }
+            }
           }]
         }
 
         this.featureLayer.renderer = renderer;
         
-
-        let subregionDetail = document.getElementById('subregion-detail');
-        subregionDetail.innerHTML = "";
-        subregionDetail.innerHTML = `
+        this.subregionDetail.innerHTML = "";
+        this.subregionDetail.innerHTML = `
           <p><b>Name</b>: ${attributes.IBRA_SUB_N}</p>
           <p><b>Region Name</b>: ${attributes.IBRA_REG_N}</p>
           <p><b>State</b>: ${attributes.STATE}</p>
         `;
       }
     })
+  }
+
+  identifyUserRegion(){
+    if(this.userRegionIdentified) {
+      let renderer = this.getRendererConf({
+        field: 'IBRA_SUB_N',
+        value: this.IBRA_SUB_N,
+        fill_color: [0, 0, 30, 0.7],
+        outline_color: [0,255,0,255]
+      });
+
+      this.featureLayer.renderer = renderer;
+      return;
+    };
+    this.mapView.hitTest(this.mapView.toScreen(this.userScreenPoint)).then(response => {
+      this.userRegionIdentified = true;
+      let graphic = response.results[1].graphic; //there will be at least two results.
+      let attributes = graphic.attributes;
+      let IBRA_SUB_N = attributes.IBRA_SUB_N;
+      this.IBRA_SUB_N = IBRA_SUB_N
+      let renderer = this.getRendererConf({
+        field: 'IBRA_SUB_N',
+        value: IBRA_SUB_N,
+        fill_color: [0, 0, 30, 0.7],
+        outline_color: [0,255,0,255]
+      });
+
+      this.featureLayer.renderer = renderer;
+
+      let subregionDetail = document.getElementById('userRegion-detail');
+      subregionDetail.innerHTML = "";
+      subregionDetail.innerHTML = `
+        <h5>Your Region:</h5>
+        <p><b>Name</b>: ${attributes.IBRA_SUB_N}</p>
+        <p><b>Region Name</b>: ${attributes.IBRA_REG_N}</p>
+        <p><b>State</b>: ${attributes.STATE}</p>
+      `;
+    })
+  }
+
+  getRendererConf(args) {
+    let field = args.field,
+        value = args.value,
+        fillColor = args.fill_color,
+        outlineColor = args.outline_color; 
+
+    let renderer = {
+      type: 'unique-value',
+      field: field,
+      defaultSymbol: this.featureLayer.renderer.symbol || this.featureLayer.renderer.defaultSymbol,
+      uniqueValueInfos: [{
+        value,
+        symbol: {
+          type: 'simple-fill',
+          color: fillColor,
+          outline: {
+            color: outlineColor, 
+            width: 0.75
+          }
+        }
+      }]
+    }
+
+    return renderer;
   }
 }
