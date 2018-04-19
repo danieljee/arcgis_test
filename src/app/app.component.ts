@@ -13,7 +13,9 @@ export class AppComponent {
   mapSelected: Subject<string> = new Subject();
   opacityChanged: Subject<number> = new Subject();
   outlineChanged: Subject<any> = new Subject();
+  popUpChanged: Subject<any> = new Subject();
   isCollapsed = true;
+  isPopUpEnabled = true;
   outlineRed = 255;
   outlineGreen = 255;
   outlineBlue = 255;
@@ -37,5 +39,12 @@ export class AppComponent {
   onMapLoaded() {
     let overlay = document.getElementById("loading-overlay");
     overlay.style.display = "none";
+  }
+
+  togglePopUpEnabled() {
+    this.isPopUpEnabled = !this.isPopUpEnabled;
+    this.popUpChanged.next({
+      enabled: this.isPopUpEnabled
+    })
   }
 }

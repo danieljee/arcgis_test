@@ -29,13 +29,13 @@
 
   <div class="container-flex" style="height:100%">
     <div class="flex-1">
-        <app-esri-map [_mapSelected]="mapSelected" [_opacityChanged]="opacityChanged" [_outlineChanged]="outlineChanged" (mapLoaded)="onMapLoaded()" style="height:100%"></app-esri-map> 
+        <app-esri-map [_mapSelected]="mapSelected" [_opacityChanged]="opacityChanged" [_outlineChanged]="outlineChanged" [_popUpChanged]="popUpChanged" (mapLoaded)="onMapLoaded()" style="height:100%"></app-esri-map> 
     </div>
 
     <div class="flex-2">
-        <div class="card information-display" style="height:70%;">
-          <div class="card-header scroll-bar-styled" style="height:35%" id="userRegion-detail"></div>
-          <div class="card-body" style="height:35%;" id="subregion-detail">
+        <div class="card information-display">
+          <div class="card-header scroll-bar-styled" id="userRegion-detail"></div>
+          <div class="card-body" id="subregion-detail">
             This is where subregion information goes
           </div>
         </div>
@@ -58,11 +58,17 @@
       </div>
       <div class="col-sm-12">
         <!-- Maybe add two more opacity: only for lines, only for body if possible
-              and make the sliders vertical in a group -->
-              <input type="range" min="0" max="1" value="0.6" step="0.1" class="slider" (change)="onChangeOpacity($event)"/>
-              <!-- <input type="range" min="0" max="255" value="255" step="1" class="slider slider-red" (change)="onChangeOutlineColor()"/>
-              <input type="range" min="0" max="255" value="255" step="1" class="slider slider-green" (change)="onChangeOutlineColor()"/>
-              <input type="range" min="0" max="255" value="255" step="1" class="slider slider-blue" (change)="onChangeOutlineColor()"/> -->
+        and make the sliders vertical in a group -->
+        <input type="range" min="0" max="1" value="0.6" step="0.1" class="slider" (change)="onChangeOpacity($event)"/>
+        <!-- <input type="range" min="0" max="255" value="255" step="1" class="slider slider-red" (change)="onChangeOutlineColor()"/>
+        <input type="range" min="0" max="255" value="255" step="1" class="slider slider-green" (change)="onChangeOutlineColor()"/>
+        <input type="range" min="0" max="255" value="255" step="1" class="slider slider-blue" (change)="onChangeOutlineColor()"/> -->
+      </div>
+      <div class="col-sm-12">
+          <p>Popup Enabled:</p>
+      </div>
+      <div class="col-sm-12">
+          <button class="{{isPopUpEnabled? 'btn btn-success': 'btn btn-danger'}}" (click)="togglePopUpEnabled()">{{isPopUpEnabled? 'Enabled': 'Disabled'}}</button>
       </div>
     </div>
           

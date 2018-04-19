@@ -61,6 +61,7 @@ export class EsriMapComponent implements OnInit {
   @Input() _mapSelected: Subject<string>;
   @Input() _opacityChanged: Subject<number>;
   @Input() _outlineChanged: Subject<any>;
+  @Input() _popUpChanged: Subject<any>;
 
   @Output() mapLoaded = new EventEmitter<boolean>();
 
@@ -82,6 +83,9 @@ export class EsriMapComponent implements OnInit {
     })
     this._opacityChanged.subscribe(opacity => {
       this.featureLayer.opacity = opacity;
+    })
+    this._popUpChanged.subscribe(popup => {
+      this.featureLayer.popupEnabled = popup.enabled;
     })
 
     this._outlineChanged.subscribe(outline => {

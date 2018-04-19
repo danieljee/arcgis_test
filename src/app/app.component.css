@@ -223,9 +223,20 @@ transition: .40s;
 transform: rotate(-90deg);
 }
 
+.information-display {
+    height: 70%;
+}
+
 .information-display .card-header {
     overflow:auto;
+    height: 35%;
 }
+
+.information-display .card-body {
+    overflow:auto;
+    height: 35%;
+}
+
 .information-display .card-header p {
     margin-bottom: 0;
 }
@@ -284,7 +295,7 @@ transform: rotate(-90deg);
         margin-top: 15px;
         margin-bottom: 15px;
         flex-basis: 100%;
-        height: 60%;
+        height: 80%;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
@@ -318,6 +329,19 @@ transform: rotate(-90deg);
     .more{
         display:block;
         margin: auto;
+    }
+
+    .information-display {
+        height: 90%;
+        margin-bottom: 30px;
+    }
+
+    .information-display .card-header {
+        height: 45%;
+    }
+    
+    .information-display .card-body {
+        height: 45%;
     }
 }
 
