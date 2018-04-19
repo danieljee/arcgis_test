@@ -20,19 +20,21 @@ export class EsriMapComponent implements OnInit {
     streets: null,
     satellite: null
   };
-  
+  private userScreenPoint;
+  private userRegionIdentified = false;
 
   private mapView: esri.MapView;
   private _currentMap = 'dark-gray';
   private featureLayer
   private trackWidget;
+  private userRegion;
   //pointers to Esri classes
   private Point;
   private Circle;
   private Graphic;
   private SimpleFillSymbol;
 
-
+  
   panelOpen = false;
   subregions = 0;
 
@@ -102,11 +104,21 @@ export class EsriMapComponent implements OnInit {
       this.Graphic = Graphic;
       this.SimpleFillSymbol = SimpleFillSymbol;
 
+      let popupTemplate = {
+        title: "Subregion: {IBRA_SUB_N}",
+        content: `
+        <h5>Details of this subregion:</h5>
+        <hr/>
+        <p><b>State</b>: {STATE}</p>
+        `
+      };
+
       this.featureLayer = new FeatureLayer({
         url: "https://services7.arcgis.com/0A8SPugLkdU8g5QU/arcgis/rest/services/IBRA7Subregion/FeatureServer",
         outFields: ["*"],
         opacity: this._opacity,
-        minScale: 0
+        minScale: 0,
+        popupTemplate
       })
       
       Object.keys(this.maps).forEach(mapType => {
@@ -146,27 +158,35 @@ export class EsriMapComponent implements OnInit {
         let layerView = event.layerView;
         layerView.watch('updating', val => {
           if (!val) {
-            this.mapLoaded.emit(true);
+            this.mapLoaded.emit(true); //should only be emitted once.
             
+            //Skip query on certain condition to save performance.
+            if(this.userRegionIdentified && !this.panelOpen) return;
             layerView.queryFeatures().then(results => { 
+              this.mapView.hitTest(this.mapView.toScreen(this.userScreenPoint)).then(response => {
+                let graphic = response.results[1].graphic; //there will be at least two results.
+                let attributes = graphic.attributes;
 
-              let attributes = Object.keys(results[0].attributes);
-              let popupContent = attributes.reduce((str, cur) => {
-                  let temp = `<b>${cur.toLowerCase}</b>: {${cur}}`;
-                  return str + temp;
-              }, '')
-
-              let popupTemplate = {
-                title: "Subregion: {IBRA_SUB_N}",
-                content: `
-                <h5>Details of this subregion:</h5>
-                <hr/>
-                ${popupContent}
-                `
-              };
-
-              this.featureLayer.popupTemplate = popupTemplate;
-
+                let renderer = {
+                  type: 'unique-value',
+                  field: 'IBRA_SUB_N',
+                  defaultSymbol: this.featureLayer.renderer.symbol || this.featureLayer.renderer.defaultSymbol,
+                  uniqueValueInfos: [{
+                    value: attributes.IBRA_SUB_N,
+                    symbol: {
+                      type: 'simple-fill',
+                      color: [0, 255, 0, 0.9],
+                      outline: {
+                        color: [255,255,255,255], 
+                        width: 0.75
+                      }
+                    }
+                  }]
+                }
+        
+                this.featureLayer.renderer = renderer;
+              })
+              
               this.addSideBar(results);
             })
           }
@@ -203,6 +223,8 @@ export class EsriMapComponent implements OnInit {
       navigator.geolocation.getCurrentPosition(location => {
         
         let point = new this.Point(location.coords.longitude, location.coords.latitude);
+
+        this.userScreenPoint = point;
         // let line = new this.SimpleLineSymbol(this.SimpleLineSymbol.STYLE_SOLID, new this.Color([210, 105, 30, 0.5]), 8);
         // let marker = new this.SimpleMarkerSymbol(this.SimpleMarkerSymbol.STYLE_CIRCLE, 12, line, new this.Color([210, 105, 30, 0.9]))
         // //add marker graphic here
@@ -267,13 +289,12 @@ export class EsriMapComponent implements OnInit {
         this.mapView.center = result.geometry.centroid
 
         let subregionDetail = document.getElementById('subregion-detail');
+        let attributes = result.attributes;
         subregionDetail.innerHTML = "";
         subregionDetail.innerHTML = `
-          <ul style="list-style:none;">
-            <li>Name: ${result.attributes.IBRA_SUB_N}</li>
-            <li>Region Name: ${result.attributes.IBRA_REG_N}</li>
-            <li>State: ${result.attributes.STATE}</li>
-          </ul>
+          <p><b>Name</b>: ${attributes.IBRA_SUB_N}</p>
+          <p><b>Region Name</b>: ${attributes.IBRA_REG_N}</p>
+          <p><b>State</b>: ${attributes.STATE}</p>
         `;
       }
     })
@@ -286,6 +307,7 @@ export class EsriMapComponent implements OnInit {
         let graphic = response.results[0].graphic; //this is assuming that only 1 layer is below the cursor.
         let attributes = graphic.attributes;
 
+        //wrap this in createRenderer function
         let renderer = {
           type: 'unique-value',
           field: 'IBRA_SUB_N',
@@ -309,11 +331,9 @@ export class EsriMapComponent implements OnInit {
         let subregionDetail = document.getElementById('subregion-detail');
         subregionDetail.innerHTML = "";
         subregionDetail.innerHTML = `
-          <ul style="list-style:none;">
-            <li>Name: ${attributes.IBRA_SUB_N}</li>
-            <li>Region Name: ${attributes.IBRA_REG_N}</li>
-            <li>State: ${attributes.STATE}</li>
-          </ul>
+          <p><b>Name</b>: ${attributes.IBRA_SUB_N}</p>
+          <p><b>Region Name</b>: ${attributes.IBRA_REG_N}</p>
+          <p><b>State</b>: ${attributes.STATE}</p>
         `;
       }
     })

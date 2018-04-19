@@ -1,13 +1,19 @@
 <div style="height:100%">
     <div class="panel-container" style="height:100%"> 
+        <p class="{{panelOpen? 'panel-refresh': 'no-display'}}"><i class="fa fa-refresh" aria-hidden="true"></i></p>
         <button class="{{panelOpen? 'panel-toggle-close': 'panel-toggle'}}" (click)="panelOpen = !panelOpen">
             <span></span>
         </button>
         <div class="panel-side" [ngStyle]="{'display': panelOpen? 'block': 'none'}">
-            <h3 class="ml-2 mr-2">Subregions Within View ({{subregions}})</h3>
+            <div class="row">
+                <div class="col-10">
+                    <h5 class="ml-2 mr-2">Subregions Within View ({{subregions}})</h5>
+                </div>
+            </div>
             <ul id="subregion_list">
                 <li id="list-loading">Loading...</li>
             </ul>
+            
         </div>
         
         <div #mapViewNode></div>

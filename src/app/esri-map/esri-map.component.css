@@ -1,5 +1,9 @@
 @import 'https://js.arcgis.com/4.6/esri/css/main.css';
 
+.no-display{
+  display:none;
+}
+
 .esri-view {
   height: 70%;
   width: 100%;
@@ -19,7 +23,7 @@
 .panel-side {
   padding: 2px;
   box-sizing: border-box;
-  width: 300px;
+  width: 20vw;
   height: 70%;
   position: absolute;
   top: 0;
@@ -57,6 +61,24 @@
   color: orange;
   background-color: rgba(0, 0, 0, 0.75);
 } */
+
+.panel-refresh {
+  position: absolute;
+  top: 15px;
+  right: 45px;
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  z-index: 65;
+}
+
+.panel-refresh i{
+  color:#fff;
+  font-size: 1.6rem;
+}
 
 .panel-toggle {
   position: absolute;
